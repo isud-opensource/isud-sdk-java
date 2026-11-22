@@ -365,7 +365,9 @@ public final class Client implements AutoCloseable {
     }
 
     @Override public void close() {
-        if (http != null) http.close();
+        // java.net.http.HttpClient implements AutoCloseable only since Java 21,
+        // but this project targets release 11. Its connection pool is managed
+        // by the JDK; there is nothing to close explicitly on Java 11/17.
     }
 
     // ---------------- 便捷层 ----------------
