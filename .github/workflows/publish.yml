@@ -32,18 +32,24 @@ jobs:
           KEYID=$(gpg --list-secret-keys --with-colons | awk -F: '/^fpr/{print $10; exit}')
           echo "GPG_KEYID=$KEYID" >> $GITHUB_ENV
           echo "Generated key: $KEYID"
-          gpg --keyserver keyserver.ubuntu.com --send-keys "$KEYID"
+          # Central 校验节点会从多个 keyserver 查公钥，全部推送以覆盖
+          for KS in keyserver.ubuntu.com keys.openpgp.org pgp.mit.edu; do
+            echo "Sending key to $KS"
+            gpg --keyserver "$KS" --send-keys "$KEYID" || echo "warn: send to $KS failed"
+          done
           # 用独立 keyring 轮询确认公钥已同步到公共 keyserver（Central 校验签名时必须能查到）
           VERIFY_HOME=$(mktemp -d)
-          for i in $(seq 1 12); do
+          for i in $(seq 1 20); do
             if gpg --homedir "$VERIFY_HOME" --keyserver keyserver.ubuntu.com \
                  --recv-keys "$KEYID" >/dev/null 2>&1; then
               echo "Public key propagated after $((i*15))s"
               break
             fi
-            echo "Waiting for keyserver sync ($i/12)..."
+            echo "Waiting for keyserver sync ($i/20)..."
             sleep 15
           done
+          # 给 Central 侧缓存刷新留缓冲，避免刚上传就校验导致找不到公钥
+          sleep 60
 
       # deploy 触发完整 lifecycle：编译→测试→打 sources/javadoc jar→GPG 签名→上传
       - name: Build, sign and publish to Maven Central
