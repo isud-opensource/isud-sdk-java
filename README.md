@@ -1,5 +1,7 @@
 # isud-sdk-java
 
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.isud-opensource/isud-sdk-java)](https://central.sonatype.com/artifact/io.github.isud-opensource/isud-sdk-java)
+
 优标宝开放 API 的 Java SDK。**零第三方运行时依赖**（JDK 11+ 原生 `HttpClient` + 内置极简 JSON 解析器），契约驱动。
 
 ## 依赖
@@ -10,10 +12,16 @@ Maven 项目：
 
 ```xml
 <dependency>
-  <groupId>cn.isud</groupId>
+  <groupId>io.github.isud-opensource</groupId>
   <artifactId>isud-sdk-java</artifactId>
   <version>1.0.0</version>
 </dependency>
+```
+
+Gradle 项目：
+
+```groovy
+implementation 'io.github.isud-opensource:isud-sdk-java:1.0.0'
 ```
 
 ## 三步跑通（Time-to-Hello-World < 3 分钟）

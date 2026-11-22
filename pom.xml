@@ -3,14 +3,34 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>cn.isud</groupId>
+
+  <groupId>io.github.isud-opensource</groupId>
   <artifactId>isud-sdk-java</artifactId>
   <version>1.0.0</version>
   <packaging>jar</packaging>
   <name>isud-sdk-java</name>
   <description>优标宝开放 API Java SDK：零第三方依赖，基于 JDK 11+ 原生 HttpClient</description>
-  <url>https://gitee.com/l-zhiyuan/isud-sdk-java</url>
-  <licenses><license><name>MIT License</name><url>https://opensource.org/licenses/MIT</url></license></licenses>
+  <url>https://github.com/isud-opensource/isud-sdk-java</url>
+  <licenses>
+    <license>
+      <name>MIT License</name>
+      <url>https://opensource.org/licenses/MIT</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <name>isud-opensource</name>
+      <email>b236257@qq.com</email>
+      <url>https://github.com/isud-opensource</url>
+    </developer>
+  </developers>
+  <scm>
+    <connection>scm:git:https://github.com/isud-opensource/isud-sdk-java.git</connection>
+    <developerConnection>scm:git:git@github.com:isud-opensource/isud-sdk-java.git</developerConnection>
+    <url>https://github.com/isud-opensource/isud-sdk-java</url>
+    <tag>HEAD</tag>
+  </scm>
 
   <properties>
     <maven.compiler.release>11</maven.compiler.release>
@@ -38,6 +58,63 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>3.2.5</version>
+      </plugin>
+      <!-- Maven Central 强制要求：sources + javadoc jar -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <version>3.3.1</version>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <goals><goal>jar-no-fork</goal></goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>3.11.2</version>
+        <configuration>
+          <doclint>none</doclint>
+        </configuration>
+        <executions>
+          <execution>
+            <id>attach-javadocs</id>
+            <goals><goal>jar</goal></goals>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- GPG 签名：从 CI secret 导入私钥，passphrase 走 -Dgpg.passphrase -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-gpg-plugin</artifactId>
+        <version>3.2.7</version>
+        <executions>
+          <execution>
+            <id>sign-artifacts</id>
+            <phase>verify</phase>
+            <goals><goal>sign</goal></goals>
+            <configuration>
+              <gpgArguments>
+                <arg>--pinentry-mode</arg>
+                <arg>loopback</arg>
+              </gpgArguments>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- Central Portal 发布插件（已取代老 OSSRH staging） -->
+      <plugin>
+        <groupId>org.sonatype.central</groupId>
+        <artifactId>central-publishing-maven-plugin</artifactId>
+        <version>0.8.0</version>
+        <extensions>true</extensions>
+        <configuration>
+          <publishingServerId>central</publishingServerId>
+          <autoPublish>true</autoPublish>
+          <waitUntil>published</waitUntil>
+        </configuration>
       </plugin>
     </plugins>
   </build>

@@ -1,0 +1,52 @@
+name: Publish to Maven Central
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+          server-id: central
+          server-username: CENTRAL_USERNAME
+          server-password: CENTRAL_PASSWORD
+
+      # 生成一次性 GPG 密钥并上传公钥，规避本地无 Java/GPG 环境问题，用户零操作
+      - name: Generate GPG key and publish public key
+        run: |
+          set -e
+          gpg --batch --pinentry-mode loopback --passphrase '' \
+            --quick-generate-key "isud-opensource <b236257@qq.com>" rsa2048 sign 0
+          KEYID=$(gpg --list-secret-keys --keyid-format long | awk '/^sec/{print $3}' | cut -d/ -f2)
+          echo "GPG_KEYID=$KEYID" >> $GITHUB_ENV
+          echo "Generated key: $KEYID"
+          gpg --keyserver keyserver.ubuntu.com --send-keys "$KEYID"
+          # 用独立 keyring 轮询确认公钥已同步到公共 keyserver（Central 校验签名时必须能查到）
+          VERIFY_HOME=$(mktemp -d)
+          for i in $(seq 1 12); do
+            if gpg --homedir "$VERIFY_HOME" --keyserver keyserver.ubuntu.com \
+                 --recv-keys "$KEYID" >/dev/null 2>&1; then
+              echo "Public key propagated after $((i*15))s"
+              break
+            fi
+            echo "Waiting for keyserver sync ($i/12)..."
+            sleep 15
+          done
+
+      # deploy 触发完整 lifecycle：编译→测试→打 sources/javadoc jar→GPG 签名→上传
+      - name: Build, sign and publish to Maven Central
+        run: mvn -B -ntp clean deploy -Dgpg.passphrase=''
+        env:
+          CENTRAL_USERNAME: ${{ secrets.CENTRAL_PORTAL_TOKEN_NAME }}
+          CENTRAL_PASSWORD: ${{ secrets.CENTRAL_PORTAL_TOKEN }}
