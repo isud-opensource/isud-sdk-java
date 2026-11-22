@@ -14,14 +14,14 @@ Maven 项目：
 <dependency>
   <groupId>io.github.isud-opensource</groupId>
   <artifactId>isud-sdk-java</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.1</version>
 </dependency>
 ```
 
 Gradle 项目：
 
 ```groovy
-implementation 'io.github.isud-opensource:isud-sdk-java:1.0.0'
+implementation 'io.github.isud-opensource:isud-sdk-java:1.0.1'
 ```
 
 ## 三步跑通（Time-to-Hello-World < 3 分钟）
@@ -72,6 +72,19 @@ public class Demo {
 | `queryRequestLog` | GET /ip/requests |
 | `getMcpHealth` | GET /mcp/health |
 | `callMcp` | POST /mcp |
+| `queryVienna` | GET /ip/vienna/query（图形检索 VCL10 / 以图搜图） |
+| `queryGazette` | GET /ip/gazette/query（CN 公告 / 全球事件） |
+| `queryReview` | GET /ip/review/query（CNIPA 评审文书 298 万） |
+| `queryIpr` | GET /ip/ipr/query（海关备案 12 万，可选接入） |
+
+四个数据能力方法均为 GET、读类 1 点/次，接收 `Map<String,?>` 参数，返回 `Object`（原始 `data` JSON 解析后的 Map/List，结构随 `mode` 变化）：
+
+```java
+Map<String, Object> p = new LinkedHashMap<>(); p.put("mode", "codes"); p.put("q", "王冠");
+Object codes = client.queryVienna(p);
+Object docs  = client.queryReview(Collections.singletonMap("q", "华为"));
+Object filings = client.queryIpr(Collections.singletonMap("q", "华为"));
+```
 
 ## 示例项目
 

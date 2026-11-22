@@ -53,7 +53,7 @@ public final class Client implements AutoCloseable {
         this.mcpBaseURL = trimSlash(b.mcpBaseURL != null ? b.mcpBaseURL : MCP_BASE_URL);
         this.timeout = b.timeout != null ? b.timeout : Duration.ofSeconds(30);
         this.maxRetries = b.maxRetries;
-        this.userAgent = b.userAgent != null ? b.userAgent : "isud-sdk-java/1.0.0";
+        this.userAgent = b.userAgent != null ? b.userAgent : "isud-sdk-java/1.0.1";
         this.http = b.transport == null ? HttpClient.newBuilder().connectTimeout(timeout).build() : null;
         this.transport = b.transport;
     }
@@ -339,6 +339,37 @@ public final class Client implements AutoCloseable {
             throw new ValidationError("requestId 必须为 1~64 字符。");
         ReqOpts o = new ReqOpts(); o.path = "/ip/requests";
         o.query.put("requestId", requestId);
+        return request(o);
+    }
+
+    // ---- 数据能力：图形检索 / 商标公告 / 评审文书 / 海关备案（GET，读类 1 点）----
+    // 返回 data 原始对象（Map/List，结构随 mode 变化），由调用方按传入 mode 解析。
+
+    /** 图形检索：维也纳 VCL10 / 关键词换码 / 分类树 / 以图搜图。 */
+    public Object queryVienna(Map<String, ?> params) {
+        ReqOpts o = new ReqOpts(); o.path = "/ip/vienna/query";
+        if (params != null) params.forEach((k, v) -> { if (v != null) o.query.put(k, String.valueOf(v)); });
+        return request(o);
+    }
+
+    /** 商标公告：CN 公告明细与期号 / 全球 7 局事件。 */
+    public Object queryGazette(Map<String, ?> params) {
+        ReqOpts o = new ReqOpts(); o.path = "/ip/gazette/query";
+        if (params != null) params.forEach((k, v) -> { if (v != null) o.query.put(k, String.valueOf(v)); });
+        return request(o);
+    }
+
+    /** 评审文书：CNIPA 298 万裁定书。 */
+    public Object queryReview(Map<String, ?> params) {
+        ReqOpts o = new ReqOpts(); o.path = "/ip/review/query";
+        if (params != null) params.forEach((k, v) -> { if (v != null) o.query.put(k, String.valueOf(v)); });
+        return request(o);
+    }
+
+    /** 海关备案：12 万条备案记录（可选接入）。 */
+    public Object queryIpr(Map<String, ?> params) {
+        ReqOpts o = new ReqOpts(); o.path = "/ip/ipr/query";
+        if (params != null) params.forEach((k, v) -> { if (v != null) o.query.put(k, String.valueOf(v)); });
         return request(o);
     }
 

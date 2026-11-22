@@ -103,10 +103,33 @@ public final class ContractSelfTest {
         System.out.println("TestMCPBareResponse:");
         Client mc = Client.builder().apiKey("k").transport((req, t) -> {
             check("mcp path", req.uri().toString().contains("/api/v1/mcp/health"));
-            return resp(200, "{\"status\":\"ok\",\"toolCount\":13}", hdr());
+            return resp(200, "{\"status\":\"ok\",\"toolCount\":15}", hdr());
         }).build();
         MCPHealth h = mc.getMcpHealth();
-        check("mcp health parsed", h != null && "ok".equals(h.status) && h.toolCount == 13);
+        check("mcp health parsed", h != null && "ok".equals(h.status) && h.toolCount == 15);
+
+        // 4b. 四个数据能力端点走 GET 且参数透传
+        System.out.println("TestDataCapabilityEndpoints:");
+        String[][] dcCases = {
+            {"queryVienna", "/ip/vienna/query"}, {"queryGazette", "/ip/gazette/query"},
+            {"queryReview", "/ip/review/query"}, {"queryIpr", "/ip/ipr/query"},
+        };
+        for (String[] tc : dcCases) {
+            final String name = tc[0], path = tc[1];
+            final boolean[] ok = {true};
+            Client dc = Client.builder().apiKey("k").transport((req, t) -> {
+                if (!"GET".equals(req.method()) || !req.uri().toString().contains(path)) ok[0] = false;
+                return resp(200, env("0000", "{\"ok\":true}"), hdr());
+            }).build();
+            Map<String, Object> p = new LinkedHashMap<>(); p.put("q", "华为");
+            Object data;
+            if ("queryVienna".equals(name)) data = dc.queryVienna(p);
+            else if ("queryGazette".equals(name)) data = dc.queryGazette(p);
+            else if ("queryReview".equals(name)) data = dc.queryReview(p);
+            else data = dc.queryIpr(p);
+            check(name + " GET+path", ok[0]);
+            check(name + " returns data", data instanceof Map && Boolean.TRUE.equals(((Map<?, ?>) data).get("ok")));
+        }
 
         // 5. Retry-After 解析
         System.out.println("TestParseRetryAfter:");

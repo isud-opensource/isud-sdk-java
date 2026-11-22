@@ -6,7 +6,7 @@
 
   <groupId>io.github.isud-opensource</groupId>
   <artifactId>isud-sdk-java</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.1</version>
   <packaging>jar</packaging>
   <name>isud-sdk-java</name>
   <description>优标宝开放 API Java SDK：零第三方依赖，基于 JDK 11+ 原生 HttpClient</description>
